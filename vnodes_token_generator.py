@@ -5,7 +5,7 @@ Vnodes Murmur3 tokens generator: generate evenly distributed initial tokens for 
 
 `initial_token` can be set in cassandra.yaml whith vnodes by using comma separated values.
 
-Here is an example usage::
+Here are some usage examples::
 
     ./vnodes_token_generator.py --json --indent 2 --servers hosts.txt 4
     {
@@ -14,6 +14,21 @@ Here is an example usage::
       "192.168.128.3": "-6148914691236517206,-1537228672809129303,3074457345618258600,7686143364045646503"
     }
 
+
+    ./vnodes_token_generator.py --servers hosts.txt 4
+    Server 192.168.128.22 -> initial_token: -7686143364045646507,-3074457345618258604,1537228672809129299,6148914691236517202
+
+    Server 192.168.128.23 -> initial_token: -6148914691236517206,-1537228672809129303,3074457345618258600,7686143364045646503
+
+    Server 192.168.128.21 -> initial_token: -9223372036854775808,-4611686018427387905,-2,461168601842738790
+
+
+    ./vnodes_token_generator.py -n 3 4
+    Server 0 -> initial_token: -9223372036854775808,-4611686018427387905,-2,4611686018427387901
+
+    Server 1 -> initial_token: -7686143364045646507,-3074457345618258604,1537228672809129299,6148914691236517202
+
+    Server 2 -> initial_token: -6148914691236517206,-1537228672809129303,3074457345618258600,7686143364045646503
 """
 from collections import defaultdict
 import json
@@ -69,14 +84,18 @@ def generate_tokens(vnodes, num_srv):
 def show_cass_yaml(tokens_per_srv):
     """Print tokens for cassandra.yaml
 
-    :param tokens_per_srv: dict key=server number, value=its tokens
-    :return:
+    :param tokens_per_srv: dict key=server number/hostname, value=its tokens
     """
     for index_or_hostname, srv_tokens in tokens_per_srv.items():
         print("Server %s -> initial_token: %s\n" % (index_or_hostname, ','.join(srv_tokens)))
 
 
 def show_json(tokens_per_srv, indent=None):
+    """Print tokens per server in JSON format
+
+    :param tokens_per_srv: dict key=server number/hostname, value=its tokens
+    :param indent: number of spaces or None to disable indentation
+    """
     tokens_databag = {}
 
     for srv, srv_tokens in tokens_per_srv.items():
@@ -109,7 +128,7 @@ if __name__ == '__main__':
             servers = [line.strip() for line in f if line.strip() != '']
         num_servers = len(servers)
     else:
-        sys.exit("Specify number of servers or file")
+        sys.exit("Specify number of servers or hosts file")
 
     tokens_per_srv = generate_tokens(args.vnodes, num_servers)
 
