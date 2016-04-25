@@ -72,8 +72,14 @@ if __name__ == '__main__':
     parser.add_argument('target_size', help='Size in bytes of the sum of sstables to compact. '
                                             'M and G could be used: e.g. 1073741824 or 1G')
     parser.add_argument('--verbose', '-v', action='store_true',
-                        help="Verbose output. Print each sstable name that will participate in the compaction")
+                        help="Verbose output. Print each sstable name that will participate in the compaction.")
     parser.add_argument('--dry-run', '-d', action='store_true', help="Simulation. Useful with --verbose.")
+    parser.add_argument('--java', help="Path to Java. By default the java command is assumed to be on the path.",
+                        default='java')
+    parser.add_argument('--jmxterm', help="Path to JmxTerm. By default looks for jmxterm.jar in the current directory.",
+                        default='jmxterm.jar')
+    parser.add_argument('--host', help="JMX IP and port. Default: 127.0.0.1:7199", metavar='HOST:PORT',
+                        default='127.0.0.1:7199')
     args = parser.parse_args()
 
     if args.verbose:
@@ -91,6 +97,10 @@ if __name__ == '__main__':
         candidates_csv = ','.join(candidates)
         jmx_cmd = ('echo run -b org.apache.cassandra.db:type=CompactionManager '
                    'forceUserDefinedCompaction %s' % candidates_csv)
-        java_cmd = '/usr/lib/jvm/java-8-oracle/bin/java -jar /tmp/jmxterm/jmxterm-1.0-alpha-4-uber.jar -l 127.0.0.1:7199'
+        java_cmd = '%(java_path)s -jar %(jmxterm_path)s -l %(jmx_host)s' % {
+            'java_path': args.java,
+            'jmxterm_path': args.jmxterm,
+            'jmx_host': args.host
+        }
         subprocess.check_call('%s | %s' % (jmx_cmd, java_cmd), shell=True)
 
