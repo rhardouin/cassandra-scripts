@@ -14,50 +14,20 @@ Here are some usage examples::
       "192.168.128.3": "-6148914691236517206,-1537228672809129303,3074457345618258600,7686143364045646503"
     }
 
-
     ./vnodes_token_generator.py --servers hosts.txt 4
     Server 192.168.128.22 -> initial_token: -7686143364045646507,-3074457345618258604,1537228672809129299,6148914691236517202
-
     Server 192.168.128.23 -> initial_token: -6148914691236517206,-1537228672809129303,3074457345618258600,7686143364045646503
-
     Server 192.168.128.21 -> initial_token: -9223372036854775808,-4611686018427387905,-2,461168601842738790
-
 
     ./vnodes_token_generator.py -n 3 4
     Server 0 -> initial_token: -9223372036854775808,-4611686018427387905,-2,4611686018427387901
-
     Server 1 -> initial_token: -7686143364045646507,-3074457345618258604,1537228672809129299,6148914691236517202
+    Server 2 -> initial_token: -6148914691236517206,-1537228672809129303,3074457345618258600,76861433640456465033
 
-    Server 2 -> initial_token: -6148914691236517206,-1537228672809129303,3074457345618258600,7686143364045646503
+See README for a real world example with interleaved racks.
 """
 from collections import defaultdict
 import json
-
-
-def generate_tokens(vnodes, num=None, server=None):
-    """Generate evenly distributed interleaved tokens for each server.
-
-    :param vnodes: int Number of vnodes per server
-    :param num: int Number of Cassandra servers
-    :param servers: list List of Cassandra IP/Hostname
-    :return: defaultdict key=server number, value=its tokens
-    """
-
-    assert any([num, servers]), "Number of servers or list of servers is mandatory"
-
-    num = len(servers)
-    num_tokens = vnodes * num
-    tokens_per_srv = defaultdict(list)
-    current_srv = 0
-
-    for i in range(num_tokens):
-        token = str(((2**64 / num_tokens) * i) - 2**63)
-        tokens_per_srv[current_srv].append(token)
-        current_srv += 1
-
-        if current_srv % servers == 0:
-            current_srv = 0
-    return tokens_per_srv
 
 
 def generate_tokens(vnodes, num_srv, offset):
@@ -89,7 +59,7 @@ def show_cass_yaml(tokens_per_srv):
     :param tokens_per_srv: dict key=server number/hostname, value=its tokens
     """
     for index_or_hostname, srv_tokens in tokens_per_srv.items():
-        print("Server %s -> initial_token: %s\n" % (index_or_hostname, ','.join(srv_tokens)))
+        print("Server %s -> initial_token: %s" % (index_or_hostname, ','.join(srv_tokens)))
 
 
 def show_json(tokens_per_srv, indent=None):
