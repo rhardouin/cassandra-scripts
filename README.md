@@ -1,10 +1,59 @@
 # cassandra-scripts
 
+ - `relative_major_compact.py`: compact up to X GB.
+ - `vnodes_token_generator.py`: generate evenly distributed initial tokens for a vnodes Cassandra cluster.
+
+## relative_major_compact.py
+
+Force a compaction to run and compact up to X GB of data.
+Useful with SizeTieredCompactionStrategy if you don't have enough free
+space to run a major compaction and you want to compact as much as possible data.
+`--dry-run` option allow to see which SSTables will be compacted.
+
+*Wordplay with the musical concept [Relative major](https://en.wikipedia.org/wiki/Relative_key)*
+
+### Dependencies
+
+`jmxterm` must be installed where `relative_major_compact.py` is run.
+
+Download:
+
+    wget http://downloads.sourceforge.net/cyclops-group/jmxterm-1.0-alpha-4-uber.jar
+
+### Usage
+
+    $ ./relative_major_compact.py -h
+    usage: relative_major_compact.py [-h] [--verbose] [--dry-run] [--java JAVA]
+                                     [--jmxterm JMXTERM] [--host HOST:PORT]
+                                     table_path target_size
+    
+    positional arguments:
+      table_path         Path to sstables to compact: e.g
+                         /var/lib/cassandra/data/ks/table/
+      target_size        Size in bytes of the sum of sstables to compact. M and G
+                         could be used: e.g. 1073741824 or 1G
+    
+    optional arguments:
+      -h, --help         show this help message and exit
+      --verbose, -v      Verbose output. Print each sstable name that will
+                         participate in the compaction.
+      --dry-run, -d      Simulation. Useful with --verbose.
+      --java JAVA        Path to Java. By default the java command is assumed to
+                         be on the path.
+      --jmxterm JMXTERM  Path to JmxTerm. By default looks for jmxterm.jar in the
+                         current directory.
+      --host HOST:PORT   JMX IP and port. Default: 127.0.0.1:7199
+
 
 ## vnodes_token_generator.py
 
 Vnodes Murmur3 tokens generator: generate evenly distributed initial tokens for a vnodes Cassandra cluster.
 `initial_token` can be set in cassandra.yaml whith vnodes by using comma separated values.
+
+**Note:**
+You should be aware of consequences when using a low number of vnodes.
+On the other hand, some operations like repairs will be faster.
+Also, don't forget that vnodes can't be moved like single token, think about it if you plan to scale out.
 
 ### Usage
 
