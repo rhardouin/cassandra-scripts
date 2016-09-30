@@ -78,8 +78,14 @@ if __name__ == '__main__':
                         default='java')
     parser.add_argument('--jmxterm', help="Path to JmxTerm. By default looks for jmxterm.jar in the current directory.",
                         default='jmxterm.jar')
-    parser.add_argument('--host', help="JMX IP and port. Default: 127.0.0.1:7199", metavar='HOST:PORT',
+    parser.add_argument('--host', '-l',
+                        help="Location of Cassandra MBean service. "
+                             "It can be <host>:<port> full service URL. "
+                             "Default: 127.0.0.1:7199",
+                        metavar='HOST:PORT',
                         default='127.0.0.1:7199')
+    parser.add_argument('--user', '-u', help="JMX username")
+    parser.add_argument('--password', '-p', help="JMX password")
     args = parser.parse_args()
 
     if args.verbose:
@@ -89,18 +95,23 @@ if __name__ == '__main__':
     size = parse_size(args.target_size)
     candidates = find_candidates(all_sstables, size)
     log.debug("The following SSTables will be compacted: \n%s" % '\n'.join(candidates))
+    candidates_csv = ','.join(candidates)
+    jmx_cmd = ('echo run -b org.apache.cassandra.db:type=CompactionManager '
+               'forceUserDefinedCompaction %s' % candidates_csv)
+    java_cmd = '%(java_path)s -jar %(jmxterm_path)s -l %(jmx_host)s' % {
+        'java_path': args.java,
+        'jmxterm_path': args.jmxterm,
+        'jmx_host': args.host
+    }
+    if args.user:
+        java_cmd = '%s --user %s --password %s' % (
+            java_cmd, args.user, args.password)
+    cmd_to_run = '%s | %s' % (jmx_cmd, java_cmd)
 
     if args.dry_run:
         log.info('=' * 80)
-        log.info("DRY RUN MODE. No compactions will be run.")
+        log.info("DRY RUN MODE. No compactions will be run.\n"
+                 "Would have run the following command line:\n%s" % cmd_to_run)
     else:
-        candidates_csv = ','.join(candidates)
-        jmx_cmd = ('echo run -b org.apache.cassandra.db:type=CompactionManager '
-                   'forceUserDefinedCompaction %s' % candidates_csv)
-        java_cmd = '%(java_path)s -jar %(jmxterm_path)s -l %(jmx_host)s' % {
-            'java_path': args.java,
-            'jmxterm_path': args.jmxterm,
-            'jmx_host': args.host
-        }
-        subprocess.check_call('%s | %s' % (jmx_cmd, java_cmd), shell=True)
+        subprocess.check_call(cmd_to_run, shell=True)
 

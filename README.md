@@ -8,7 +8,7 @@
 Force a compaction to run and compact up to X GB of data.
 Useful with SizeTieredCompactionStrategy if you don't have enough free
 space to run a major compaction and you want to compact as much as possible data.
-`--dry-run` option allow to see which SSTables will be compacted.
+`--dry-run` option allows to see which SSTables will be compacted.
 
 *Wordplay with the musical concept [Relative major](https://en.wikipedia.org/wiki/Relative_key)*
 
