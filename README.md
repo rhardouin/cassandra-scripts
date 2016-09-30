@@ -8,7 +8,27 @@ Vnodes Murmur3 tokens generator: generate evenly distributed initial tokens for 
 
 ### Usage
 
-    vnodes_token_generator.py [-h] [-i INDENT] [-n NUM | -s SERVERS] vnodes
+    $ ./vnodes_token_generator.py -h
+    usage: vnodes_token_generator.py [-h] [--offset OFFSET] [-i INDENT]
+                                     [-j | -y | -t] [-n NUM | -s SERVERS]
+                                     vnodes
+    
+    positional arguments:
+      vnodes                Number of vnodes per server
+    
+    optional arguments:
+      -h, --help            show this help message and exit
+      --offset OFFSET       Value to add to each token, to avoid potential
+                            conflicts (e.g. 1). Default is 0 (no offset).
+      -i INDENT, --indent INDENT
+                            JSON indentation spaces (e.g. 4)
+      -j, --json            JSON output
+      -y, --yaml            initial_token for cassandra.yaml
+      -t, --text            Space separated values. First column: IP address, then
+                            one column per token
+      -n NUM, --num NUM     Number of Cassandra servers
+      -s SERVERS, --servers SERVERS
+                            Cassandra servers file. One IP/hostname per line.
 
 ### Basic examples
 
