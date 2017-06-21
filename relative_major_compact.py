@@ -5,6 +5,7 @@ import glob
 import logging
 import os
 import subprocess
+import sys
 
 logging.basicConfig(level=logging.INFO, format='%(message)s')
 
@@ -97,6 +98,10 @@ if __name__ == '__main__':
     all_sstables = find_all_sstables(args.table_path)
     size = parse_size(args.target_size)
     candidates = find_candidates(all_sstables, size)
+
+    if len(candidates) == 0:
+        log.error("No SSTables found in directory %s", args.table_path)
+        sys.exit(1)
     log.debug("The following SSTables will be compacted: \n%s" % '\n'.join(candidates))
     candidates_csv = ','.join(candidates)
     jmx_cmd = ('echo run -b org.apache.cassandra.db:type=CompactionManager '
