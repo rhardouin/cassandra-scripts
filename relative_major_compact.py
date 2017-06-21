@@ -16,7 +16,10 @@ def find_all_sstables(table_path):
     path = os.path.join(table_path, '*Data.db')
 
     for sstable in glob.iglob(path):
-        sstables.append((os.path.getsize(sstable), os.path.basename(sstable)))
+        if 'tmp' not in sstable:
+            sstables.append((os.path.getsize(sstable), os.path.basename(sstable)))
+        else:
+            log.debug("Ignoring temp file: %s" % sstable)
     sstables.sort()
     return sstables
 
